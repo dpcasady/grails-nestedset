@@ -1,14 +1,45 @@
+plugins {
+    id "com.jfrog.artifactory" version "4.4.0"
+}
+
 group 'com.ticketbis'
 version '1.0-SNAPSHOT'
 
 apply plugin: 'groovy'
+apply plugin: 'idea'
+apply plugin: 'maven'
+apply plugin: 'maven-publish'
+
+ext {
+    isSnapshot = version.endsWith("SNAPSHOT")
+}
+
+artifactory {
+    contextUrl = "${artifactory_contextUrl}"
+    publish {
+        repository {
+            if (isSnapshot) {
+                repoKey = 'plugins-snapshot-local'
+            }
+            else {
+                repoKey = 'plugins-release-local'
+            }
+            username = "${artifactory_user}"
+            password = "${artifactory_password}"
+            maven = true
+        }
+        defaults {
+           publications ('maven')
+        }
+    }
+}
 
 repositories {
-    mavenCentral()
+    mavenLocal()
+    maven { url 'http://ci.championmedtech.com/artifactory/repo' }
 }
 
 dependencies {
     compile 'org.grails:grails-core:3.1.10'
-
     testCompile "org.spockframework:spock-core:1.0-groovy-2.4"
 }
