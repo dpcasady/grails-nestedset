@@ -1,25 +1,22 @@
 # Nestedset
 
-[![Build
-Status](https://travis-ci.org/ticketbis/grails-nestedset.png?branch=master)](https://travis-ci.org/ticketbis/grails-nestedset)
-
-The nested set model is a particular technique for representing nested sets (also known as trees or hierarchies) in relational databases. This plugin provides nestedset behaviour to domain classes.
+The nested set model is a particular technique for representing nested sets (also known as trees or hierarchies) in relational databases. This plugin provides nested set behaviour to domain classes.
 
 ## Installation
 
-Add dependency to your BuildConfig;
+Add dependency to your `build.gradle`:
 
 ```groovy
-compile "com.ticketbis:nestedset:0.1.0"
+compile "com.cmt:nestedset:0.1-SNAPSHOT"
 ```
 
 ## Usage
 
-The following example shows how to add nestedset behaviour to a domain class:
+The following example shows how to add nested set behaviour to a domain class via the `@Nestedset` AST annotation:
 
 ```groovy
 // grails-app/domain/Category.groovy
-import com.ticketbis.nestedset.ast.Nestedset
+import com.cmt.nestedset.ast.Nestedset
 
 @Nestedset
 class Category {
@@ -29,27 +26,27 @@ class Category {
 
 Properties added to domain class are listed below:
 ```groovy
-Integer lft // Nestedset left value
-Integer rgt // Nestedset right value
-Integer depth // Node depth inside the tree
+Integer lft     // Nestedset left value
+Integer rgt     // Nestedset right value
+Integer depth   // Node depth inside the tree
 Category parent // Parent node
 ```
-Changing lft, rgt and depth values manually will corrupt the tree. Please, DO NOT change them manually, use addNode, deleteNode and moveNode instead.
+Changing `lft`, `rgt` and `depth` values manually will corrupt the tree. Please, DO NOT change them manually, use `addNode`, `deleteNode` and `moveNode` instead.
 
 
 Methods added to domain class are listed below:
 ```groovy
-Boolean isLeaf() // does not have children.
-Boolean isRootNode() // does not have parent node.
-List getDescendants() // Its descendants. A subtree with the node as root.
-Long countDescendants() // Number of descendants.
-List getLeafs() // Descendants without children (Leafs nodes)
+Boolean isLeaf()                                // does not have children.
+Boolean isRootNode()                            // does not have parent node.
+List getDescendants()                           // Its descendants. A subtree with the node as root.
+Long countDescendants()                         // Number of descendants.
+List getLeafs()                                 // Descendants without children (Leafs nodes)
 List getAncestors(boolean include_itself=false) // Ancestors (breadcrumb)
-def getChildren(params=[:]) // Direct children
-Long countChildren() // Count direct children
-Category getLastChild() // Last child node
-Category getRoot() // Its root node
-Boolean isDescendant(Category node) 
+def getChildren(params=[:])                     // Direct children
+Long countChildren()                            // Count direct children
+Category getLastChild()                         // Last child node
+Category getRoot()                              // Its root node
+Boolean isDescendant(Category node)
 ```
 
 Three static methods are available to alter the tree:
