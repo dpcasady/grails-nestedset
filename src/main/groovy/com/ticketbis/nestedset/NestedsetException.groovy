@@ -1,8 +1,6 @@
 package com.ticketbis.nestedset
 
-class NestedsetException extends RuntimeException {
-	public NestedsetException(String message) {
-		super(message)
-	}
-}
+import groovy.transform.InheritConstructors
 
+@InheritConstructors
+class NestedsetException extends RuntimeException { }
