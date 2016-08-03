@@ -1,0 +1,14 @@
+group 'com.ticketbis'
+version '1.0-SNAPSHOT'
+
+apply plugin: 'groovy'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    compile 'org.grails:grails-core:3.1.10'
+
+    testCompile "org.spockframework:spock-core:1.0-groovy-2.4"
+}
