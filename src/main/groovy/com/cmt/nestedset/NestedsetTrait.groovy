@@ -300,7 +300,7 @@ trait NestedSetTrait {
     /**
     * Method required due to wrong meaning of `this` inside withTransaction
     **/
-    static void deleteQueries(NestedSetTrait node){
+    static void deleteQueries(NestedSetTrait node) {
         String cname = this.simpleName
         def hasLastUpdated = this.getDeclaredField('lastUpdated') != null
         String lastUpdatedQuery = hasLastUpdated ? ', node.lastUpdated = ?' : ''

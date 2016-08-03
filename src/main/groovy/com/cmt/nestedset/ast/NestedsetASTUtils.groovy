@@ -25,34 +25,13 @@ import org.grails.compiler.injection.GrailsASTUtils
 @CompileStatic
 class NestedSetASTUtils {
 
-    static FieldNode getOrCreateField(
-            ClassNode classNode,
-            String fieldName,
-            Expression initialExpression,
-            int modifiers = FieldNode.ACC_PUBLIC,
-            Class fieldType = Object) {
-
-        getOrCreateField(classNode,
-            fieldName,
-            initialExpression,
-            modifiers,
-            new ClassNode(fieldType))
+    static FieldNode getOrCreateField(ClassNode classNode, String fieldName, Expression initialExpression, int modifiers = FieldNode.ACC_PUBLIC, Class fieldType = Object) {
+        getOrCreateField(classNode, fieldName, initialExpression, modifiers, new ClassNode(fieldType))
     }
 
-    static FieldNode getOrCreateField(
-            ClassNode classNode,
-            String fieldName,
-            Expression initialExpression,
-            int modifiers = FieldNode.ACC_PUBLIC,
-            ClassNode fieldType) {
-
+    static FieldNode getOrCreateField(ClassNode classNode, String fieldName, Expression initialExpression, int modifiers = FieldNode.ACC_PUBLIC, ClassNode fieldType) {
         if (!classNode.getDeclaredField(fieldName)) {
-            FieldNode field = new FieldNode(
-                    fieldName,
-                    modifiers,
-                    fieldType,
-                    classNode,
-                    initialExpression)
+            FieldNode field = new FieldNode(fieldName, modifiers, fieldType, classNode, initialExpression)
 
             field.declaringClass = classNode
             classNode.addField(field)
@@ -61,62 +40,31 @@ class NestedSetASTUtils {
         classNode.getDeclaredField(fieldName)
     }
 
-    static FieldNode getOrCreateProperty(
-            ClassNode classNode,
-            String fieldName,
-            Expression initialExpression,
-            int modifiers,
-            ClassNode fieldType) {
-
+    static FieldNode getOrCreateProperty(ClassNode classNode, String fieldName, Expression initialExpression, int modifiers, ClassNode fieldType) {
         if (!classNode.getDeclaredField(fieldName)) {
-            classNode.addProperty(fieldName,
-                                  modifiers,
-                                  fieldType,
-                                  initialExpression, null, null)
+            classNode.addProperty(fieldName, modifiers, fieldType, initialExpression, null, null)
         }
         classNode.getDeclaredField(fieldName)
     }
 
-
-    static FieldNode getOrCreateStaticField(
-            ClassNode classNode,
-            String fieldName,
-            Expression initialExpression,
-            int modifiers = FieldNode.ACC_PUBLIC,
-            Class fieldType = Object) {
-
-        getOrCreateField(
-                classNode,
-                fieldName,
-                initialExpression,
-                modifiers | FieldNode.ACC_STATIC,
-                fieldType)
+    static FieldNode getOrCreateStaticField(ClassNode classNode, String fieldName, Expression initialExpression, int modifiers = FieldNode.ACC_PUBLIC, Class fieldType = Object) {
+        getOrCreateField(classNode, fieldName, initialExpression, modifiers | FieldNode.ACC_STATIC, fieldType)
     }
 
     static ListExpression getTransientsListExpression(ClassNode classNode) {
-        FieldNode transientsField = getOrCreateStaticField(
-                classNode,
-                GrailsDomainClassProperty.TRANSIENT,
-                new ListExpression())
+        FieldNode transientsField = getOrCreateStaticField(classNode, GrailsDomainClassProperty.TRANSIENT, new ListExpression())
 
         (ListExpression) transientsField.initialExpression
     }
 
     static MapExpression getHasManyMapExpression(ClassNode classNode) {
-        FieldNode transientsField = getOrCreateStaticField(
-                classNode,
-                GrailsDomainClassProperty.HAS_MANY,
-                new MapExpression())
+        FieldNode transientsField = getOrCreateStaticField(classNode, GrailsDomainClassProperty.HAS_MANY, new MapExpression())
 
         (MapExpression) transientsField.initialExpression
     }
 
     static ClosureExpression getNamedQueriesClosureExpression(ClassNode classNode) {
-        FieldNode namedQueriesField = getOrCreateStaticField(
-                classNode,
-                GrailsDomainClassProperty.NAMED_QUERIES,
-                new ClosureExpression(GrailsASTUtils.ZERO_PARAMETERS,
-                                      new BlockStatement()))
+        FieldNode namedQueriesField = getOrCreateStaticField(classNode, GrailsDomainClassProperty.NAMED_QUERIES, new ClosureExpression(GrailsASTUtils.ZERO_PARAMETERS, new BlockStatement()))
 
         (ClosureExpression) namedQueriesField.initialExpression
     }
@@ -126,21 +74,15 @@ class NestedSetASTUtils {
         transientsListExpr.addExpression(new ConstantExpression(fieldName))
     }
 
-    static void addHasManyRelationship(
-            ClassNode classNode,
-            String relName,
-            ClassNode relClass) {
-
+    static void addHasManyRelationship(ClassNode classNode, String relName, ClassNode relClass) {
         MapExpression hasManyMapExpr = getHasManyMapExpression(classNode)
-        hasManyMapExpr.addMapEntryExpression(
-                new ConstantExpression(relName),
-                new ClassExpression(relClass))
+        hasManyMapExpr.addMapEntryExpression(new ConstantExpression(relName), new ClassExpression(relClass))
     }
 
     static void addNamedQuery(ClassNode classNode, Statement code) {
         ClosureExpression namedQueriesExpr = getNamedQueriesClosureExpression(classNode)
-        BlockStatement blockStmnt = (BlockStatement) namedQueriesExpr.code
-        blockStmnt.addStatement(code)
+        BlockStatement blockStatement = (BlockStatement) namedQueriesExpr.code
+        blockStatement.addStatement(code)
     }
 
     static void addSettings(String name, ClassNode classNode, String fieldName, String config) {
@@ -152,45 +94,42 @@ class NestedSetASTUtils {
         BlockStatement newConfig = (BlockStatement) new AstBuilder().buildFromString(configStr).get(0)
 
         FieldNode closure = classNode.getField(name)
-        if(closure == null) {
+        if (closure == null) {
             createStaticClosure(classNode, name)
             closure = classNode.getField(name)
             assert closure != null
         }
 
-        if(!hasFieldInClosure(closure, fieldName)) {
+        if (!hasFieldInClosure(closure, fieldName)) {
             ReturnStatement returnStatement = (ReturnStatement) newConfig.getStatements().get(0)
-            ExpressionStatement exStatment = new ExpressionStatement(returnStatement.getExpression())
-            ClosureExpression exp = (ClosureExpression)closure.getInitialExpression()
+            ExpressionStatement expressionStatement = new ExpressionStatement(returnStatement.getExpression())
+            ClosureExpression exp = (ClosureExpression) closure.getInitialExpression()
             BlockStatement block = (BlockStatement) exp.getCode()
-            block.addStatement(exStatment)
+            block.addStatement(expressionStatement)
         }
 
         assert hasFieldInClosure(closure,fieldName) == true
     }
 
     static void createStaticClosure(ClassNode classNode,String name) {
-        FieldNode field = new FieldNode(name, FieldNode.ACC_PUBLIC | FieldNode.ACC_STATIC,
-            new ClassNode(java.lang.Object.class),
-            new ClassNode(classNode.getClass()),
-            null)
-        ClosureExpression expr = new ClosureExpression(Parameter.EMPTY_ARRAY,
-            new BlockStatement())
-        expr.setVariableScope(new VariableScope())
-        field.setInitialValueExpression(expr)
+        FieldNode field = new FieldNode(name, FieldNode.ACC_PUBLIC | FieldNode.ACC_STATIC, new ClassNode(java.lang.Object.class), new ClassNode(classNode.getClass()), null)
+        ClosureExpression expression = new ClosureExpression(Parameter.EMPTY_ARRAY, new BlockStatement())
+        expression.setVariableScope(new VariableScope())
+        field.setInitialValueExpression(expression)
         classNode.addField(field)
     }
 
     static boolean hasFieldInClosure(FieldNode closure, String fieldName) {
-        if(closure != null) {
-            ClosureExpression exp = (ClosureExpression) closure.getInitialExpression()
-            BlockStatement block = (BlockStatement) exp.getCode()
-            List<Statement> ments = block.getStatements()
-            for(Statement expstat : ments) {
-                if(expstat instanceof ExpressionStatement && ((ExpressionStatement)expstat).getExpression() instanceof MethodCallExpression) {
-                    MethodCallExpression methexp = (MethodCallExpression)((ExpressionStatement)expstat).getExpression()
-                    ConstantExpression conexp = (ConstantExpression)methexp.getMethod()
-                    if(conexp.getValue().equals(fieldName)) {
+        if (closure != null) {
+            ClosureExpression expression = (ClosureExpression) closure.getInitialExpression()
+            BlockStatement block = (BlockStatement) expression.getCode()
+            List<Statement> statements = block.getStatements()
+            for (Statement statement : statements) {
+                if (statement instanceof ExpressionStatement && ((ExpressionStatement)statement).getExpression() instanceof MethodCallExpression) {
+                    ExpressionStatement expressionStatement = (ExpressionStatement) statement
+                    MethodCallExpression methodCall = (MethodCallExpression) expressionStatement.getExpression()
+                    ConstantExpression constantExpression = (ConstantExpression) methodCall.getMethod()
+                    if (constantExpression.getValue().equals(fieldName)) {
                         return true
                     }
                 }

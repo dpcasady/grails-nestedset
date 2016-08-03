@@ -16,7 +16,6 @@ import org.codehaus.groovy.control.CompilePhase
 import org.codehaus.groovy.control.SourceUnit
 import org.codehaus.groovy.transform.ASTTransformation
 import org.codehaus.groovy.transform.GroovyASTTransformation
-import org.codehaus.groovy.transform.trait.TraitComposer
 import org.grails.compiler.injection.GrailsASTUtils
 
 import java.lang.reflect.Modifier
@@ -31,53 +30,35 @@ class NestedSetTransformation implements ASTTransformation, CompilationUnitAware
 
     void visit(ASTNode[] astNodes, SourceUnit sourceUnit) {
         assert astNodes[0] instanceof AnnotationNode
-        assert astNodes[1] instanceof ClassNode,
-                "@NestedSet can only be applied on classes"
+        assert astNodes[1] instanceof ClassNode, "@NestedSet can only be applied on classes"
 
         AnnotationNode annotation = astNodes[0]
         ClassNode targetClassNode = astNodes[1]
 
-        assert GrailsASTUtils.isDomainClass(targetClassNode, sourceUnit),
-                "@NestedSet annotation should be applied over domain classes"
+        assert GrailsASTUtils.isDomainClass(targetClassNode, sourceUnit), "@NestedSet annotation should be applied over domain classes"
 
-        log.info "Adding NestedSet transform to ${ targetClassNode.name }..."
+        log.info "Adding NestedSet transform to ${targetClassNode.name}..."
 
         addProperties(targetClassNode)
         addNestedSetTrait(targetClassNode, sourceUnit)
         addConstraints(targetClassNode)
-        addbeforeInsertHook(targetClassNode)
-        addbeforeUpdateHook(targetClassNode)
+        addBeforeInsertHook(targetClassNode)
+        addBeforeUpdateHook(targetClassNode)
     }
 
     private void addProperties(ClassNode classNode) {
-        ['lft', 'rgt', 'depth'].each { field ->
-            NestedSetASTUtils.getOrCreateProperty(
-                classNode,
-                field,
-                new ConstantExpression(0),
-                Modifier.PUBLIC,
-                ClassHelper.Integer_TYPE)
+        ['lft', 'rgt', 'depth'].each { String field ->
+            NestedSetASTUtils.getOrCreateProperty(classNode, field, new ConstantExpression(0), Modifier.PUBLIC, ClassHelper.Integer_TYPE)
         }
 
         // parent node
-        //def classNodeLnk = ClassHelper.make(classNode.name)
-        //classNodeLnk.setRedirect(classNode)
-        def classNodeLabel = ClassHelper.makeWithoutCaching(classNode.name)
-        NestedSetASTUtils.getOrCreateProperty(
-            classNode,
-            'parent',
-            new EmptyExpression(),
-            Modifier.PUBLIC,
-            classNodeLabel
-        )
+        // ClassNode classNodeLnk = ClassHelper.make(classNode.name)
+        // classNodeLnk.setRedirect(classNode)
+        ClassNode classNodeLabel = ClassHelper.makeWithoutCaching(classNode.name)
+        NestedSetASTUtils.getOrCreateProperty(classNode, 'parent', new EmptyExpression(), Modifier.PUBLIC, classNodeLabel)
 
         // transient property to avoid manual nestedset properties manipulation
-        NestedSetASTUtils.getOrCreateProperty(
-            classNode,
-            'nestedsetMutable',
-            new ConstantExpression(false),
-            Modifier.PUBLIC,
-              ClassHelper.Boolean_TYPE)
+        NestedSetASTUtils.getOrCreateProperty(classNode, 'nestedsetMutable', new ConstantExpression(false), Modifier.PUBLIC, ClassHelper.Boolean_TYPE)
         NestedSetASTUtils.addTransient(classNode, 'nestedsetMutable')
     }
 
@@ -86,66 +67,42 @@ class NestedSetTransformation implements ASTTransformation, CompilationUnitAware
             return
 
         classNode.addInterface(NESTEDSET_NODE)
-        TraitComposer.doExtendTraits(classNode, sourceUnit, compilationUnit)
+        org.codehaus.groovy.transform.trait.TraitComposer.doExtendTraits(classNode, sourceUnit, compilationUnit)
     }
 
     private void addConstraints(ClassNode classNode) {
-        NestedSetASTUtils.addSettings(
-            'constraints',
-            classNode,
-            'parent',
-            'nullable: true'
-        )
+        NestedSetASTUtils.addSettings('constraints', classNode, 'parent', 'nullable: true')
     }
 
-    private void addbeforeInsertHook(ClassNode classNode) {
-        MethodNode methodNode = classNode.getMethod("beforeInsert", Parameter.EMPTY_ARRAY)
+    /**
+     * Add a method call to the b4Insert() method provided by
+     * NestedSetTrait in the domain's beforeInsert() GORM event hook.
+     */
+    private void addBeforeInsertHook(ClassNode classNode) {
+        addGormEventHook(classNode, 'Insert')
+    }
+
+    /**
+     * Add a method call to the b4Update() method provided by
+     * NestedSetTrait in the domain's beforeUpdate() GORM event hook.
+     */
+    private void addBeforeUpdateHook(ClassNode classNode) {
+        addGormEventHook(classNode, 'Update')
+    }
+
+    private void addGormEventHook(ClassNode classNode, String hook) {
+        MethodNode methodNode = classNode.getMethod("before$hook", Parameter.EMPTY_ARRAY)
         if (!methodNode) {
-            methodNode = classNode.addMethod("beforeInsert",
-                    Modifier.PUBLIC,
-                    ClassHelper.OBJECT_TYPE,
-                    Parameter.EMPTY_ARRAY,
-                    null,
-                    new BlockStatement());
+            methodNode = classNode.addMethod("before$hook", Modifier.PUBLIC, ClassHelper.OBJECT_TYPE, Parameter.EMPTY_ARRAY, null, new BlockStatement())
         }
 
-        BlockStatement statement = new BlockStatement([
-              new ExpressionStatement(
-                  new MethodCallExpression(
-                      VariableExpression.THIS_EXPRESSION,
-                      'b4Insert',
-                      MethodCallExpression.NO_ARGUMENTS
-                  )
-              )
-          ] as Statement[],
-          new VariableScope())
+        MethodCallExpression methodCallExpression = new MethodCallExpression(VariableExpression.THIS_EXPRESSION, "b4$hook", MethodCallExpression.NO_ARGUMENTS)
+        ExpressionStatement expression = new ExpressionStatement(methodCallExpression)
+        Statement[] statements = [expression] as Statement[]
+        BlockStatement statement = new BlockStatement(statements, new VariableScope())
 
-        methodNode.code.addStatement(statement)
+        BlockStatement existingStatements = methodNode.code
+        existingStatements.addStatement(statement)
     }
 
-    private void addbeforeUpdateHook(ClassNode classNode) {
-        MethodNode methodNode = classNode.getMethod("beforeUpdate", Parameter.EMPTY_ARRAY)
-        if (!methodNode) {
-            methodNode = classNode.addMethod("beforeUpdate",
-                    Modifier.PUBLIC,
-                    ClassHelper.OBJECT_TYPE,
-                    Parameter.EMPTY_ARRAY,
-                    null,
-                    new BlockStatement());
-        }
-
-        BlockStatement statement = new BlockStatement([
-              new ExpressionStatement(
-                  new MethodCallExpression(
-                      VariableExpression.THIS_EXPRESSION,
-                      'b4Update',
-                      MethodCallExpression.NO_ARGUMENTS
-                  )
-              )
-          ] as Statement[],
-          new VariableScope())
-
-        methodNode.code.addStatement(statement)
-    }
 }
-
