@@ -1,4 +1,4 @@
-package com.ticketbis.nestedset.ast
+package com.cmt.nestedset.ast
 
 import grails.core.GrailsDomainClassProperty
 import groovy.transform.PackageScope

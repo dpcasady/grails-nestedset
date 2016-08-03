@@ -2,7 +2,7 @@ plugins {
     id "com.jfrog.artifactory" version "4.4.0"
 }
 
-group 'com.ticketbis'
+group 'com.cmt'
 version '1.0-SNAPSHOT'
 
 apply plugin: 'groovy'

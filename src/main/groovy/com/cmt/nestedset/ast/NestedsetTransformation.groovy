@@ -1,6 +1,6 @@
-package com.ticketbis.nestedset.ast
+package com.cmt.nestedset.ast
 
-import com.ticketbis.nestedset.NestedsetTrait
+import com.cmt.nestedset.NestedsetTrait
 import groovy.transform.CompilationUnitAware
 import groovy.util.logging.Slf4j
 import org.codehaus.groovy.ast.*
@@ -20,7 +20,6 @@ import org.codehaus.groovy.transform.trait.TraitComposer
 import org.grails.compiler.injection.GrailsASTUtils
 
 import java.lang.reflect.Modifier
-
 
 @Slf4j
 @GroovyASTTransformation(phase = CompilePhase.CANONICALIZATION)

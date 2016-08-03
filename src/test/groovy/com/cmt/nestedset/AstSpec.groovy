@@ -1,6 +1,6 @@
-package com.ticketbis.nestedset
+package com.cmt.nestedset
 
-import com.ticketbis.nestedset.ast.Nestedset
+import com.cmt.nestedset.ast.Nestedset
 import grails.persistence.Entity
 import spock.lang.Specification
 

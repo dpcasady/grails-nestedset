@@ -1,4 +1,4 @@
-package com.ticketbis.nestedset
+package com.cmt.nestedset
 
 trait NestedsetTrait {
 

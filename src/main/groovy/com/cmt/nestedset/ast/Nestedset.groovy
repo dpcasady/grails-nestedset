@@ -1,4 +1,4 @@
-package com.ticketbis.nestedset.ast
+package com.cmt.nestedset.ast
 
 import org.codehaus.groovy.transform.GroovyASTTransformationClass
 import java.lang.annotation.ElementType
@@ -8,5 +8,5 @@ import java.lang.annotation.Retention
 
 @Retention(RetentionPolicy.RUNTIME)
 @Target([ElementType.TYPE])
-@GroovyASTTransformationClass(["com.ticketbis.nestedset.ast.NestedsetTransformation"])
+@GroovyASTTransformationClass(["com.cmt.nestedset.ast.NestedsetTransformation"])
 @interface Nestedset {}
