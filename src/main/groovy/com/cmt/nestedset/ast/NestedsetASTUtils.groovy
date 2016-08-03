@@ -23,7 +23,7 @@ import org.grails.compiler.injection.GrailsASTUtils
 
 @PackageScope
 @CompileStatic
-class NestedsetASTUtils {
+class NestedSetASTUtils {
 
     static FieldNode getOrCreateField(
             ClassNode classNode,
@@ -182,21 +182,21 @@ class NestedsetASTUtils {
     }
 
     static boolean hasFieldInClosure(FieldNode closure, String fieldName) {
-		if(closure != null) {
-			ClosureExpression exp = (ClosureExpression) closure.getInitialExpression()
-			BlockStatement block = (BlockStatement) exp.getCode()
-			List<Statement> ments = block.getStatements()
-			for(Statement expstat : ments) {
-				if(expstat instanceof ExpressionStatement && ((ExpressionStatement)expstat).getExpression() instanceof MethodCallExpression) {
-					MethodCallExpression methexp = (MethodCallExpression)((ExpressionStatement)expstat).getExpression()
-					ConstantExpression conexp = (ConstantExpression)methexp.getMethod()
-					if(conexp.getValue().equals(fieldName)) {
-						return true
-					}
-				}
-			}
-		}
-		return false
-	}
+        if(closure != null) {
+            ClosureExpression exp = (ClosureExpression) closure.getInitialExpression()
+            BlockStatement block = (BlockStatement) exp.getCode()
+            List<Statement> ments = block.getStatements()
+            for(Statement expstat : ments) {
+                if(expstat instanceof ExpressionStatement && ((ExpressionStatement)expstat).getExpression() instanceof MethodCallExpression) {
+                    MethodCallExpression methexp = (MethodCallExpression)((ExpressionStatement)expstat).getExpression()
+                    ConstantExpression conexp = (ConstantExpression)methexp.getMethod()
+                    if(conexp.getValue().equals(fieldName)) {
+                        return true
+                    }
+                }
+            }
+        }
+        return false
+    }
 
 }

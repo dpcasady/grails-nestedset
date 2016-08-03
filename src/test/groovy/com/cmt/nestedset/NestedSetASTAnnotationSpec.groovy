@@ -1,6 +1,6 @@
 package com.cmt.nestedset
 
-import com.cmt.nestedset.ast.Nestedset
+import com.cmt.nestedset.ast.NestedSet
 import grails.persistence.Entity
 import spock.lang.Specification
 import spock.lang.Unroll
@@ -9,13 +9,13 @@ class NestedSetASTAnnotationSpec extends Specification {
 
     NestedSetDomain domain = new NestedSetDomain()
 
-    void "NestedsetDomain implements NestedsetTrait"() {
+    void "NestedSetDomain implements NestedSetTrait"() {
         expect:
-        domain instanceof NestedsetTrait
+        domain instanceof NestedSetTrait
     }
 
     @Unroll
-    void "NestedsetDomain has property '#property'"() {
+    void "NestedSetDomain has property '#property'"() {
         expect:
         domain.hasProperty(property)
 
@@ -29,7 +29,7 @@ class NestedSetASTAnnotationSpec extends Specification {
     }
 
     @Unroll
-    void "NestedsetDomain responds to '#method'"() {
+    void "NestedSetDomain responds to '#method'"() {
         expect:
         domain.respondsTo(method)
 
@@ -51,5 +51,5 @@ class NestedSetASTAnnotationSpec extends Specification {
 }
 
 @Entity
-@Nestedset
+@NestedSet
 class NestedSetDomain { }

@@ -8,5 +8,5 @@ import java.lang.annotation.Retention
 
 @Retention(RetentionPolicy.RUNTIME)
 @Target([ElementType.TYPE])
-@GroovyASTTransformationClass(["com.cmt.nestedset.ast.NestedsetTransformation"])
-@interface Nestedset {}
+@GroovyASTTransformationClass(["com.cmt.nestedset.ast.NestedSetTransformation"])
+@interface NestedSet {}

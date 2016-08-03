@@ -1,4 +1,4 @@
-# Nestedset
+# NestedSet
 
 The nested set model is a particular technique for representing nested sets (also known as trees or hierarchies) in relational databases. This plugin provides nested set behaviour to domain classes.
 
@@ -12,13 +12,13 @@ compile "com.cmt:nestedset:0.1-SNAPSHOT"
 
 ## Usage
 
-The following example shows how to add nested set behaviour to a domain class via the `@Nestedset` AST annotation:
+The following example shows how to add nested set behaviour to a domain class via the `@NestedSet` AST annotation:
 
 ```groovy
 // grails-app/domain/Category.groovy
-import com.cmt.nestedset.ast.Nestedset
+import com.cmt.nestedset.ast.NestedSet
 
-@Nestedset
+@NestedSet
 class Category {
     String name
 }
@@ -26,8 +26,8 @@ class Category {
 
 Properties added to domain class are listed below:
 ```groovy
-Integer lft     // Nestedset left value
-Integer rgt     // Nestedset right value
+Integer lft     // NestedSet left value
+Integer rgt     // NestedSet right value
 Integer depth   // Node depth inside the tree
 Category parent // Parent node
 ```
@@ -80,7 +80,7 @@ assert parent.rgt == 8 // Right value.
 ```
 
 ##### Unit tests
-Nestedset plugin protects lft, rft and depth properties from manual modification. Since executeUpdates are not supported for unit testing, addNode doesn't work, so in order to bypass nestedset protection
+NestedSet plugin protects lft, rft and depth properties from manual modification. Since executeUpdates are not supported for unit testing, addNode doesn't work, so in order to bypass nestedset protection
 you can do the following:
 ```groovy
 Category category = new Categoria(name: 'Category 1')

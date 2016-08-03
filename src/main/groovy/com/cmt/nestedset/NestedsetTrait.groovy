@@ -1,6 +1,6 @@
 package com.cmt.nestedset
 
-trait NestedsetTrait {
+trait NestedSetTrait {
 
     /**
     * Instance methods
@@ -106,21 +106,21 @@ trait NestedsetTrait {
         return this.class.countByParent(this)
     }
 
-    NestedsetTrait getLastChild() {
+    NestedSetTrait getLastChild() {
         if (this.isLeaf()) {
             return null
         }
         return this.class.findByRgt(this.rgt - 1)
     }
 
-    NestedsetTrait getRoot() {
+    NestedSetTrait getRoot() {
         if (this.isRootNode()) {
             return null
         }
         return this.class.findByParentIsNullAndLftLessThanAndRgtGreaterThan(this.lft, this.lft)
     }
 
-    Boolean isDescendant(NestedsetTrait node) {
+    Boolean isDescendant(NestedSetTrait node) {
         return this.lft > node.lft && this.lft < node.rgt
     }
 
@@ -128,9 +128,9 @@ trait NestedsetTrait {
     * Static methods
     **/
 
-	static def getRoots(params=[:]) {
-		return this.findAllByParentIsNull(params)
-	}
+    static def getRoots(params=[:]) {
+        return this.findAllByParentIsNull(params)
+    }
 
     /**
     * Since modifying the tree needs to be thread-safe, we need to lock the table
@@ -142,7 +142,7 @@ trait NestedsetTrait {
         String cname = this.simpleName
         def res = this.executeUpdate("update ${cname} set depth = -1 where depth = 1")
         if (res == 0 && this.countByDepth(-1) > 0) {
-            throw new NestedsetException("tree locked by other thread, try again ;)")
+            throw new NestedSetException("tree locked by other thread, try again ;)")
         }
     }
 
@@ -150,16 +150,16 @@ trait NestedsetTrait {
         String cname = this.simpleName
         def res = this.executeUpdate("update ${cname} set depth = 1 where depth = -1")
         if (res == 0 && this.countByDepth(1) > 0) {
-            throw new NestedsetException("unlocking: nested tree corrupted")
+            throw new NestedSetException("unlocking: nested tree corrupted")
         }
     }
 
-    static void addNode(NestedsetTrait node, NestedsetTrait parent) {
+    static void addNode(NestedSetTrait node, NestedSetTrait parent) {
         node.parent = parent
         addNode(node)
     }
 
-    static void addNode(NestedsetTrait node) {
+    static void addNode(NestedSetTrait node) {
         def parent = node.parent
 
         // nestedset properties could be changed by other node movements
@@ -168,7 +168,7 @@ trait NestedsetTrait {
         }
 
         if (node.lft != 0 || node.rgt != 0 || node.depth != 0) {
-            throw new NestedsetException("lft, rgt and depth properties cannot be setted explicitly")
+            throw new NestedSetException("lft, rgt and depth properties cannot be setted explicitly")
         }
 
         if (parent?.isAttached()) {
@@ -176,7 +176,7 @@ trait NestedsetTrait {
         }
 
         if (parent && parent.depth == 0) {
-            throw new NestedsetException("parent node must be added to the tree first. Use addNode first")
+            throw new NestedSetException("parent node must be added to the tree first. Use addNode first")
         }
 
         node.nestedsetMutable = true
@@ -276,16 +276,16 @@ trait NestedsetTrait {
     * deletes the node and all its descendants
     * param: leafSafe deletes only when node is a leaf
     **/
-    static void deleteNode(NestedsetTrait node, boolean leafSafe=true) {
+    static void deleteNode(NestedSetTrait node, boolean leafSafe=true) {
         if (isNodeDirty(node)) {
-            throw new NestedsetException("nestedset node properties cannot be modified manually")
+            throw new NestedSetException("nestedset node properties cannot be modified manually")
         }
 
         // nestedset properties could be changed by other node movements
         node.refresh()
 
         if (leafSafe && !node.isLeaf()) {
-            throw new NestedsetException("parent nodes cannot be deleted in leafSafe mode")
+            throw new NestedSetException("parent nodes cannot be deleted in leafSafe mode")
         }
 
         this.withTransaction { status ->
@@ -300,7 +300,7 @@ trait NestedsetTrait {
     /**
     * Method required due to wrong meaning of `this` inside withTransaction
     **/
-    static void deleteQueries(NestedsetTrait node){
+    static void deleteQueries(NestedSetTrait node){
         String cname = this.simpleName
         def hasLastUpdated = this.getDeclaredField('lastUpdated') != null
         String lastUpdatedQuery = hasLastUpdated ? ', node.lastUpdated = ?' : ''
@@ -332,20 +332,20 @@ trait NestedsetTrait {
         this.executeUpdate(query_lft, params)
     }
 
-    static boolean isNodeDirty(NestedsetTrait node) {
+    static boolean isNodeDirty(NestedSetTrait node) {
         return node.isDirty('lft') || node.isDirty('rgt') || node.isDirty('depth')
     }
 
     /**
     * Moves the node and its descendants as child of the given parent node
     **/
-    static void moveNode(NestedsetTrait node, NestedsetTrait parent) {
+    static void moveNode(NestedSetTrait node, NestedSetTrait parent) {
         if (isNodeDirty(node)) {
-            throw new NestedsetException("nestedset node properties cannot be modified manually")
+            throw new NestedSetException("nestedset node properties cannot be modified manually")
         }
 
         if (parent && isNodeDirty(parent)) {
-            throw new NestedsetException("nestedset parent node properties cannot be modified manually")
+            throw new NestedSetException("nestedset parent node properties cannot be modified manually")
         }
 
         // nestedset properties could be changed by other node movements
@@ -358,7 +358,7 @@ trait NestedsetTrait {
         }
 
         if (parent?.isDescendant(node)) {
-            throw new NestedsetException("node cannot be moved to one of its descendants")
+            throw new NestedSetException("node cannot be moved to one of its descendants")
         }
 
         if (node.id == parent?.id || node.parent?.id == parent?.id) {
@@ -418,7 +418,7 @@ trait NestedsetTrait {
     /**
     * Method required due to wrong meaning of `this` inside withTransaction
     **/
-    static void moveQueries(NestedsetTrait node, def parentDepth,
+    static void moveQueries(NestedSetTrait node, def parentDepth,
         def parentLft, String lastUpdatedQuery, String versionQuery, List params) {
 
         def depthDiff = parentDepth - node.depth + 1
@@ -439,7 +439,7 @@ trait NestedsetTrait {
         this.executeUpdate(sqlMove, params)
     }
 
-    static void forceRootDepth(NestedsetTrait node) {
+    static void forceRootDepth(NestedSetTrait node) {
         String cname = this.simpleName
         this.executeUpdate("UPDATE ${cname} SET depth = -1 WHERE id = ${node.id}")
     }
@@ -460,14 +460,14 @@ trait NestedsetTrait {
 
     void b4Insert() {
         if (!this.nestedsetMutable) {
-            throw new NestedsetException("New nodes must be added by using static method addNode")
+            throw new NestedSetException("New nodes must be added by using static method addNode")
         }
     }
 
     void b4Update() {
         if (!this.nestedsetMutable) {
             if (this.isDirty('lft') || this.isDirty('rgt') || this.isDirty('depth')) {
-                throw new NestedsetException("Nestedset properties (lft, rgt and depth) cannot be altered manually")
+                throw new NestedSetException("NestedSet properties (lft, rgt and depth) cannot be altered manually")
             }
         }
     }

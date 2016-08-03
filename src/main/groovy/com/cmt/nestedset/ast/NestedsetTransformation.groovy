@@ -1,6 +1,6 @@
 package com.cmt.nestedset.ast
 
-import com.cmt.nestedset.NestedsetTrait
+import com.cmt.nestedset.NestedSetTrait
 import groovy.transform.CompilationUnitAware
 import groovy.util.logging.Slf4j
 import org.codehaus.groovy.ast.*
@@ -23,27 +23,27 @@ import java.lang.reflect.Modifier
 
 @Slf4j
 @GroovyASTTransformation(phase = CompilePhase.CANONICALIZATION)
-class NestedsetTransformation implements ASTTransformation, CompilationUnitAware {
+class NestedSetTransformation implements ASTTransformation, CompilationUnitAware {
 
     CompilationUnit compilationUnit
 
-    private static final ClassNode NESTEDSET_NODE = new ClassNode(NestedsetTrait)
+    private static final ClassNode NESTEDSET_NODE = new ClassNode(NestedSetTrait)
 
     void visit(ASTNode[] astNodes, SourceUnit sourceUnit) {
         assert astNodes[0] instanceof AnnotationNode
         assert astNodes[1] instanceof ClassNode,
-                "@Nestedset can only be applied on classes"
+                "@NestedSet can only be applied on classes"
 
         AnnotationNode annotation = astNodes[0]
         ClassNode targetClassNode = astNodes[1]
 
         assert GrailsASTUtils.isDomainClass(targetClassNode, sourceUnit),
-                "@Nestedset annotation should be applied over domain classes"
+                "@NestedSet annotation should be applied over domain classes"
 
-        log.info "Adding Nestedset transform to ${ targetClassNode.name }..."
+        log.info "Adding NestedSet transform to ${ targetClassNode.name }..."
 
         addProperties(targetClassNode)
-        addNestedsetTrait(targetClassNode, sourceUnit)
+        addNestedSetTrait(targetClassNode, sourceUnit)
         addConstraints(targetClassNode)
         addbeforeInsertHook(targetClassNode)
         addbeforeUpdateHook(targetClassNode)
@@ -51,7 +51,7 @@ class NestedsetTransformation implements ASTTransformation, CompilationUnitAware
 
     private void addProperties(ClassNode classNode) {
         ['lft', 'rgt', 'depth'].each { field ->
-            NestedsetASTUtils.getOrCreateProperty(
+            NestedSetASTUtils.getOrCreateProperty(
                 classNode,
                 field,
                 new ConstantExpression(0),
@@ -63,7 +63,7 @@ class NestedsetTransformation implements ASTTransformation, CompilationUnitAware
         //def classNodeLnk = ClassHelper.make(classNode.name)
         //classNodeLnk.setRedirect(classNode)
         def classNodeLabel = ClassHelper.makeWithoutCaching(classNode.name)
-        NestedsetASTUtils.getOrCreateProperty(
+        NestedSetASTUtils.getOrCreateProperty(
             classNode,
             'parent',
             new EmptyExpression(),
@@ -72,16 +72,16 @@ class NestedsetTransformation implements ASTTransformation, CompilationUnitAware
         )
 
         // transient property to avoid manual nestedset properties manipulation
-        NestedsetASTUtils.getOrCreateProperty(
+        NestedSetASTUtils.getOrCreateProperty(
             classNode,
             'nestedsetMutable',
             new ConstantExpression(false),
             Modifier.PUBLIC,
               ClassHelper.Boolean_TYPE)
-        NestedsetASTUtils.addTransient(classNode, 'nestedsetMutable')
+        NestedSetASTUtils.addTransient(classNode, 'nestedsetMutable')
     }
 
-    private void addNestedsetTrait(ClassNode classNode, SourceUnit sourceUnit) {
+    private void addNestedSetTrait(ClassNode classNode, SourceUnit sourceUnit) {
         if (classNode.declaresInterface(NESTEDSET_NODE))
             return
 
@@ -90,7 +90,7 @@ class NestedsetTransformation implements ASTTransformation, CompilationUnitAware
     }
 
     private void addConstraints(ClassNode classNode) {
-        NestedsetASTUtils.addSettings(
+        NestedSetASTUtils.addSettings(
             'constraints',
             classNode,
             'parent',
